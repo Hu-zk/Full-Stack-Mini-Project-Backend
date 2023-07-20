@@ -13,5 +13,5 @@
     $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
 
     if(!$mysqli){
-        die("Failed to connect to the DataBase");
+        die('Failed to connect to the DataBase');
     }
