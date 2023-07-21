@@ -4,6 +4,7 @@ include('connection.php');
 
 $json_data = file_get_contents('php://input');
 $data = json_decode($json_data, true);
+$response = [];
 
 if ($data !== null) {
     $username = $data['username'];
@@ -23,10 +24,11 @@ if ($data !== null) {
         $query->execute();
     
         $response['status'] = "success";
-        echo json_encode($response);
     }
     else{
         $response['status'] = "failed";
-        echo json_encode($response);
     }
+}else{
+    $response['status'] = "failed no DATA";
 }
+echo json_encode($response);
