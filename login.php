@@ -2,38 +2,33 @@
 include('connection.php');
 
 $json_data = file_get_contents('php://input');
-$data = json_decode($json_data, true);
-$response = [];
+$_POST = json_decode($json_data, true);
 
+$email = $_POST['email'];
+$password = $_POST['password'];
 
-if ($data !== null) {
+$query = $mysqli->prepare('select * from users where email=?');
+$query->bind_param('s', $email);
+$query->execute();
+$query->store_result();
 
-    $email = $data['email'];
-    $password = $data['password'];
+$query->bind_result($id, $username,$email, $hashed_password);
+$query->fetch();
 
-    $query = $mysqli->prepare('select * from users where email=?');
-    $query->bind_param('s', $email);
-    $query->execute();
-    $query->store_result();
-
-    $query->bind_result($id, $username,$email, $hashed_password);
-    $query->fetch();
-
-    $num_rows = $query->num_rows();
-    if ($num_rows == 0) {
-        $response['status'] = "user not found";
+$num_rows = $query->num_rows();
+if ($num_rows == 0) {
+    $response['status'] = "Failed";
+    $response['message'] = "Email not found";
+} else {
+    if (password_verify($password, $hashed_password)) {
+        $response['status'] = 'logged in';
+        $response['user_id'] = $id;
+        $response['username'] = $username;
+        $response['email'] = $email;
     } else {
-        if (password_verify($password, $hashed_password)) {
-            $response['status'] = 'logged in';
-            $response['user_id'] = $id;
-            $response['username'] = $username;
-            $response['email'] = $email;
-            echo json_encode($response);
-            return;
-        } else {
-            $response['status'] = "wrong password";
-            echo json_encode($response);
-            return;
-        }
+        $response['status'] = "Failed";
+        $response['message'] = "Incorrect Password";
+
     }
 }
+echo json_encode($response);
